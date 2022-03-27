@@ -6,32 +6,12 @@ import {
   getType,
   printHelp,
   checkTmux,
+  prereqCheck,
   countRunningContainers,
   activateDockerMachine,
 } from './lib.js'
 
-import {
-  startEnv,
-  stopEnv,
-  restartEnv,
-  cleanEnv,
-  statusEnv
-} from './cmds.js'
-
-const prereqCheck = () => {
-  // Check if tmux exists
-  if (!which.sync('tmux', { nothrow: true })) {
-    console.log(`[${chalk.red('Error')}] Please install tmux before continuing!`)
-    process.exit(1)
-  }
-
-  // Check if docker + docker-compose exists
-  if (!which.sync('docker', { nothrow: true }) && !which.sync('docker-compose', { nothrow: true })) {
-    console.log(`[${chalk.red('Error')}] Please install docker and docker-compose before continuing!`)
-    process.exit(1)
-  }
-}
-
+import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.js'
 
 const main = async () => {
   if (argv['_'].length !== 2) {

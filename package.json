@@ -14,10 +14,24 @@
   "author": "ndom91 <yo@ndo.dev>",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^8.12.0",
-    "prettier": "^2.6.1"
+    "lint-staged": "^12.3.7",
+    "prettier": "^2.6.1",
+    "simple-git-hooks": "^2.7.0"
   },
   "dependencies": {
     "zx": "^6.0.7"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,mjs,jsx,ts,tsx}": [
+      "prettier --write"
+    ]
   }
 }

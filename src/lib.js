@@ -1,9 +1,8 @@
-
 const typeSchema = {
   CONTAINERS: 'CONTAINERS',
   FRONTEND: 'FRONTEND',
   BACKEND: 'BACKEND',
-  ALL: 'ALL'
+  ALL: 'ALL',
 }
 
 const printUsage = () => {
@@ -39,11 +38,34 @@ const printHelp = (code = 0) => {
 }
 
 const checkTmux = async () => {
-  return (await $`tmux has-session -t checkly 2>/dev/null`.exitCode === 0)
+  return (await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 0
 }
 
 const countRunningContainers = async () => {
-  return (await $`$(docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv) 2>/dev/null | wc -l)`)
+  return await $`$(docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv) 2>/dev/null | wc -l)`
+}
+
+const prereqCheck = () => {
+  // Check if tmux exists
+  if (!which.sync('tmux', { nothrow: true })) {
+    console.log(
+      `[${chalk.red('Error')}] Please install tmux before continuing!`,
+    )
+    process.exit(1)
+  }
+
+  // Check if docker + docker-compose exists
+  if (
+    !which.sync('docker', { nothrow: true }) &&
+    !which.sync('docker-compose', { nothrow: true })
+  ) {
+    console.log(
+      `[${chalk.red(
+        'Error',
+      )}] Please install docker and docker-compose before continuing!`,
+    )
+    process.exit(1)
+  }
 }
 
 const getType = () => {
@@ -64,8 +86,8 @@ const activateDockerMachine = async () => {
     const dockerHost = process.env.DOCKER_MACHINE_NAME
       ? process.env.DOCKER_MACHINE_NAME
       : argv.h
-        ? argv.h
-        : 'default'
+      ? argv.h
+      : 'default'
 
     const dockerEnv = await $`docker-machine env ${dockerHost}`
 
@@ -78,7 +100,7 @@ const activateDockerMachine = async () => {
         }
         return acc
       }, [])
-      .forEach(envVar => {
+      .forEach((envVar) => {
         // Set temporary env vars for docker-machine for any following docker cmds
         process.env[envVar[0]] = envVar[1]
       })
@@ -89,7 +111,8 @@ export {
   typeSchema,
   printHelp,
   checkTmux,
-  countRunningContainers,
   getType,
-  activateDockerMachine
+  prereqCheck,
+  activateDockerMachine,
+  countRunningContainers,
 }

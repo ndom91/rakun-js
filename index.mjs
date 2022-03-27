@@ -29,11 +29,42 @@ const printUsage = () => {
 `)
 }
 
+const printHelp = (code = 0) => {
+  printUsage()
+  process.exit(code)
+}
+
+const status = async () => {
+  await $`docker ps`
+}
+
+const restart = async (opts) => {
+  const { frontend, backend, all } = opts
+
+  switch (argv._[1]) {
+    case 'restart':
+    default:
+    // restart all
+  }
+  await $`docker-compose -f ${$.prefix}docker-compose.yml restart`
+}
+
+const start = async () => {
+  await $`docker-compose -f ${$.prefix}docker-compose.yml up -d`
+}
+
+const stopEnv = async () => {
+  await $`docker-compose -f ${$.prefix}docker-compose.yml stop`
+}
+
+const clean = async () => {
+  await $`docker-compose -f ${$.prefix}docker-compose.yml down -v`
+}
+
+
 const parseArgs = async () => {
   if (argv['_'].length !== 2) {
-    console.error('Usage: rakun [FLAGS] [ACTION]');
-    printUsage()
-    process.exit(1);
+    printHelp(1)
   }
 
   // Activate 'docker-machine' mode
@@ -57,40 +88,32 @@ const parseArgs = async () => {
         process.env[envVar[0]] = envVar[1].trim().replaceAll('"', '')
       })
 
-    await $`env | grep DOCKER`
-    await $`docker ps`
   }
   switch (argv._[1]) {
     case 'restart':
-      return {
-        action: 'restart',
-        flags: argv
-      }
+      const { f: frontend = false, b: backend = false, a: all = true } = argv
+      await restart({
+        frontend,
+        backend,
+        all
+      })
+      break
     case 'status':
-      console.log('\nSTATUS!')
-      process.exit(0)
+      await status()
+      break
     case 'start':
-      return {
-        action: 'start',
-        flags: argv
-      }
+      await startEnv()
+      break
     case 'stop':
-      return {
-        action: 'stop',
-        flags: argv
-      }
+      await stopEnv()
+      break
     case 'clean':
-      return {
-        action: 'clean',
-        flags: argv
-      }
+      await clean()
+      break
     case 'help':
-      printUsage()
-      process.exit(1)
+      printHelp(0)
     default:
-      console.error('Usage: rakun [FLAGS] [ACTION]');
-      printUsage()
-      process.exit(1);
+      printHelp(0)
   }
 }
 

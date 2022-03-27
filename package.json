@@ -2,13 +2,13 @@
   "name": "rakun-js",
   "version": "1.0.0",
   "description": "Experimental js cli for managing my local development environment",
-  "main": "src/index.mjs",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "zx ./src/index.mjs"
+    "start": "zx ./src/index.js"
   },
   "bin": {
-    "rakun": "./src/index.mjs"
+    "rakun": "./src/index.js"
   },
   "keywords": [],
   "author": "ndom91 <yo@ndo.dev>",

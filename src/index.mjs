@@ -1,47 +1,57 @@
 #!/usr/bin/env zx
 
-// $.prefix = 'set -euo pipefail '
+$.verbose = false
 
 import {
   getType,
   printHelp,
-  checkTmux,
   prereqCheck,
-  countRunningContainers,
   activateDockerMachine,
 } from './lib.js'
 
 import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.js'
 
 const main = async () => {
-  if (argv['_'].length !== 2) {
-    printHelp(1)
+  if (argv.version || argv.v) {
+    const { version } = require('./../package.json')
+    console.log(version)
+    process.exit(0)
+  }
+  if (argv.verbose) {
+    $.verbose = true
   }
 
-  prereqCheck()
-  await activateDockerMachine()
-  const type = getType()
+  try {
+    prereqCheck()
+    if (argv.m) {
+      await activateDockerMachine()
+    }
+    const type = getType()
 
-  switch (argv._[1]) {
-    case 'restart':
-      await restartEnv({ type })
-      break
-    case 'status':
-      await statusEnv()
-      break
-    case 'start':
-      await startEnv({ type })
-      break
-    case 'stop':
-      await stopEnv()
-      break
-    case 'clean':
-      await cleanEnv()
-      break
-    case 'help':
-      printHelp(0)
-    default:
-      printHelp(0)
+    switch (argv._[1]) {
+      case 'restart':
+        await restartEnv({ type })
+        break
+      case 'status':
+        await statusEnv()
+        break
+      case 'start':
+        await startEnv({ type })
+        break
+      case 'stop':
+        await stopEnv({ type })
+        break
+      case 'clean':
+        await cleanEnv()
+        break
+      case 'help':
+        printHelp(0)
+      default:
+        printHelp(0)
+    }
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
   }
 }
 

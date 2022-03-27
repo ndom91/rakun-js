@@ -8,7 +8,7 @@ const typeSchema = {
 const printUsage = () => {
   console.log(`
     Usage:
-      rakun [FLAGS] [ACTION]
+      ${chalk.bgGreenBright.black('  rakun  ')} [FLAGS] [ACTION]
 
     Flags:
       -m      activate docker-mmachine
@@ -28,7 +28,7 @@ const printUsage = () => {
         Ensures no more processes are running.
 
     Options:
-      --help, -h
+      --help
 `)
 }
 
@@ -42,7 +42,10 @@ const checkTmux = async () => {
 }
 
 const countRunningContainers = async () => {
-  return await $`$(docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv) 2>/dev/null | wc -l)`
+  const containerCountProcessOutput = await nothrow(
+    $`docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv*) 2>/dev/null | wc -l`,
+  )
+  return parseInt(containerCountProcessOutput.stdout)
 }
 
 const prereqCheck = () => {
@@ -80,16 +83,18 @@ const getType = () => {
   }
 }
 
-const activateDockerMachine = async () => {
-  // Activate 'docker-machine' mode
-  if (argv.m) {
-    const dockerHost = process.env.DOCKER_MACHINE_NAME
-      ? process.env.DOCKER_MACHINE_NAME
-      : argv.h
-      ? argv.h
-      : 'default'
+const getDockerMachineHost = () => {
+  return process.env.DOCKER_MACHINE_NAME
+    ? process.env.DOCKER_MACHINE_NAME
+    : argv.h
+    ? argv.h
+    : 'default'
+}
 
-    const dockerEnv = await $`docker-machine env ${dockerHost}`
+const activateDockerMachine = async () => {
+  const dockerHost = getDockerMachineHost()
+  try {
+    const dockerEnv = await quiet($`docker-machine env ${dockerHost}`)
 
     dockerEnv.stdout
       .split('\n')
@@ -104,15 +109,72 @@ const activateDockerMachine = async () => {
         // Set temporary env vars for docker-machine for any following docker cmds
         process.env[envVar[0]] = envVar[1]
       })
+  } catch (p) {
+    console.log(
+      `[${chalk.red('E')}] Could not activate docker-machine - ${p.stderr}`,
+    )
+    process.exit(1)
   }
 }
 
+const checkRunningContainers = async () => {
+  try {
+    const filteredOutput =
+      await $`docker ps --filter name=devenv* --format="{{.Names}}" 2>/dev/null`
+    const runningContainers = filteredOutput.stdout.split('\n')
+    const runningContainersCount = runningContainers.filter(
+      (cont) => cont,
+    ).length
+
+    if (runningContainersCount !== 6) {
+      const missingContainers = [
+        'sqs',
+        'clickhouse',
+        'db',
+        'redis',
+        'aurora',
+        'kinesis',
+      ].reduce((acc, containerName) => {
+        if (
+          runningContainers.filter((container) => {
+            return container.includes(containerName)
+          }).length === 0
+        ) {
+          acc.push(containerName)
+        }
+        return acc
+      }, [])
+
+      console.log(
+        `[${chalk.red(
+          'E',
+        )}] It looks like the following containers are not running!`,
+      )
+      missingContainers.forEach((container) => {
+        console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
+      })
+    }
+  } catch (p) {
+    console.log(
+      `[${chalk.red('E')}] Could not check running containers - ${p.stderr}`,
+    )
+    process.exit(1)
+  }
+}
+
+const inRange = (x, min, max) => {
+  return (x - min) * (x - max) <= 0
+}
+
 export {
-  typeSchema,
+  getType,
+  inRange,
   printHelp,
   checkTmux,
-  getType,
+  typeSchema,
   prereqCheck,
+  getDockerMachineHost,
   activateDockerMachine,
   countRunningContainers,
+  checkRunningContainers,
 }

@@ -1,0 +1,16 @@
+{
+  "name": "rakun-js",
+  "version": "1.0.0",
+  "description": "Experimental js cli for managing my local development environment",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "zx index.mjs"
+  },
+  "bin": {
+    "rakun": "./index.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

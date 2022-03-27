@@ -79,13 +79,15 @@ const parseArgs = async () => {
 
     dockerEnv.stdout
       .split('\n')
-      .filter(line => line.startsWith('export'))
-      .map((line) => (
-        line.replaceAll('export ', '')
-      ))
-      .map(line => line.split('='))
+      .reduce((acc, line) => {
+        if (line.startsWith('export')) {
+          const [key, value] = line.replaceAll('export ', '').split('=')
+          acc.push([key, value.trim().replaceAll('"', '')])
+        }
+        return acc
+      }, [])
       .forEach(envVar => {
-        process.env[envVar[0]] = envVar[1].trim().replaceAll('"', '')
+        process.env[envVar[0]] = envVar[1]
       })
 
   }

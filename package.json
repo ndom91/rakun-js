@@ -2,15 +2,22 @@
   "name": "rakun-js",
   "version": "1.0.0",
   "description": "Experimental js cli for managing my local development environment",
-  "main": "index.js",
+  "main": "src/index.mjs",
   "type": "module",
   "scripts": {
-    "start": "zx index.mjs"
+    "start": "zx ./src/index.mjs"
   },
   "bin": {
-    "rakun": "./index.mjs"
+    "rakun": "./src/index.mjs"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "ndom91 <yo@ndo.dev>",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.12.0",
+    "prettier": "^2.6.1"
+  },
+  "dependencies": {
+    "zx": "^6.0.7"
+  }
 }

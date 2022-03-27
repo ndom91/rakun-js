@@ -1,6 +1,10 @@
-#!/usr/bin/env zx
 
-$.prefix = ''
+const typeSchema = {
+  CONTAINERS: 'CONTAINERS',
+  FRONTEND: 'FRONTEND',
+  BACKEND: 'BACKEND',
+  ALL: 'ALL'
+}
 
 const printUsage = () => {
   console.log(`
@@ -34,39 +38,27 @@ const printHelp = (code = 0) => {
   process.exit(code)
 }
 
-const status = async () => {
-  await $`docker ps`
+const checkTmux = async () => {
+  return (await $`tmux has-session -t checkly 2>/dev/null`.exitCode === 0)
 }
 
-const restart = async (opts) => {
-  const { frontend, backend, all } = opts
+const countRunningContainers = async () => {
+  return (await $`$(docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv) 2>/dev/null | wc -l)`)
+}
 
-  switch (argv._[1]) {
-    case 'restart':
-    default:
-    // restart all
+const getType = () => {
+  if (argv.f) {
+    return typeSchema.FRONTEND
+  } else if (argv.b) {
+    return typeSchema.BACKEND
+  } else if (argv.c) {
+    return typeSchema.CONTAINERS
+  } else {
+    return typeSchema.ALL
   }
-  await $`docker-compose -f ${$.prefix}docker-compose.yml restart`
 }
 
-const start = async () => {
-  await $`docker-compose -f ${$.prefix}docker-compose.yml up -d`
-}
-
-const stopEnv = async () => {
-  await $`docker-compose -f ${$.prefix}docker-compose.yml stop`
-}
-
-const clean = async () => {
-  await $`docker-compose -f ${$.prefix}docker-compose.yml down -v`
-}
-
-
-const parseArgs = async () => {
-  if (argv['_'].length !== 2) {
-    printHelp(1)
-  }
-
+const activateDockerMachine = async () => {
   // Activate 'docker-machine' mode
   if (argv.m) {
     const dockerHost = process.env.DOCKER_MACHINE_NAME
@@ -87,36 +79,17 @@ const parseArgs = async () => {
         return acc
       }, [])
       .forEach(envVar => {
+        // Set temporary env vars for docker-machine for any following docker cmds
         process.env[envVar[0]] = envVar[1]
       })
-
-  }
-  switch (argv._[1]) {
-    case 'restart':
-      const { f: frontend = false, b: backend = false, a: all = true } = argv
-      await restart({
-        frontend,
-        backend,
-        all
-      })
-      break
-    case 'status':
-      await status()
-      break
-    case 'start':
-      await startEnv()
-      break
-    case 'stop':
-      await stopEnv()
-      break
-    case 'clean':
-      await clean()
-      break
-    case 'help':
-      printHelp(0)
-    default:
-      printHelp(0)
   }
 }
 
-await parseArgs()
+export {
+  typeSchema,
+  printHelp,
+  checkTmux,
+  countRunningContainers,
+  getType,
+  activateDockerMachine
+}

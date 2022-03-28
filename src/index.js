@@ -2,12 +2,7 @@
 
 $.verbose = false
 
-import {
-  getType,
-  printHelp,
-  prereqCheck,
-  activateDockerMachine,
-} from './lib.js'
+import { getType, printHelp, prereqCheck, activateDockerMachine } from './lib.js'
 
 import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.js'
 

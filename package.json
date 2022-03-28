@@ -26,7 +26,8 @@
   "prettier": {
     "semi": false,
     "singleQuote": true,
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "printWidth": 100
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

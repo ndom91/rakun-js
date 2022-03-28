@@ -51,9 +51,7 @@ const countRunningContainers = async () => {
 const prereqCheck = () => {
   // Check if tmux exists
   if (!which.sync('tmux', { nothrow: true })) {
-    console.log(
-      `[${chalk.red('Error')}] Please install tmux before continuing!`,
-    )
+    console.log(`[${chalk.red('Error')}] Please install tmux before continuing!`)
     process.exit(1)
   }
 
@@ -63,9 +61,7 @@ const prereqCheck = () => {
     !which.sync('docker-compose', { nothrow: true })
   ) {
     console.log(
-      `[${chalk.red(
-        'Error',
-      )}] Please install docker and docker-compose before continuing!`,
+      `[${chalk.red('Error')}] Please install docker and docker-compose before continuing!`,
     )
     process.exit(1)
   }
@@ -110,9 +106,7 @@ const activateDockerMachine = async () => {
         process.env[envVar[0]] = envVar[1]
       })
   } catch (p) {
-    console.log(
-      `[${chalk.red('E')}] Could not activate docker-machine - ${p.stderr}`,
-    )
+    console.log(`[${chalk.red('E')}] Could not activate docker-machine - ${p.stderr}`)
     process.exit(1)
   }
 }
@@ -122,42 +116,30 @@ const checkRunningContainers = async () => {
     const filteredOutput =
       await $`docker ps --filter name=devenv* --format="{{.Names}}" 2>/dev/null`
     const runningContainers = filteredOutput.stdout.split('\n')
-    const runningContainersCount = runningContainers.filter(
-      (cont) => cont,
-    ).length
+    const runningContainersCount = runningContainers.filter((cont) => cont).length
 
     if (runningContainersCount !== 6) {
-      const missingContainers = [
-        'sqs',
-        'clickhouse',
-        'db',
-        'redis',
-        'aurora',
-        'kinesis',
-      ].reduce((acc, containerName) => {
-        if (
-          runningContainers.filter((container) => {
-            return container.includes(containerName)
-          }).length === 0
-        ) {
-          acc.push(containerName)
-        }
-        return acc
-      }, [])
-
-      console.log(
-        `[${chalk.red(
-          'E',
-        )}] It looks like the following containers are not running!`,
+      const missingContainers = ['sqs', 'clickhouse', 'db', 'redis', 'aurora', 'kinesis'].reduce(
+        (acc, containerName) => {
+          if (
+            runningContainers.filter((container) => {
+              return container.includes(containerName)
+            }).length === 0
+          ) {
+            acc.push(containerName)
+          }
+          return acc
+        },
+        [],
       )
+
+      console.log(`[${chalk.red('E')}] It looks like the following containers are not running!`)
       missingContainers.forEach((container) => {
         console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
       })
     }
   } catch (p) {
-    console.log(
-      `[${chalk.red('E')}] Could not check running containers - ${p.stderr}`,
-    )
+    console.log(`[${chalk.red('E')}] Could not check running containers - ${p.stderr}`)
     process.exit(1)
   }
 }

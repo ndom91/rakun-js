@@ -111,8 +111,8 @@ const activateDockerMachine = async () => {
       .split('\n')
       .reduce((acc, line) => {
         if (line.startsWith('export')) {
-          const [key, value] = line.replaceAll('export ', '').split('=')
-          acc.push([key, value.trim().replaceAll('"', '')])
+          const [key, value] = line.replace('export ', '').split('=')
+          acc.push([key, value.trim().replace('"', '').replace('"', '')])
         }
         return acc
       }, [])
@@ -152,6 +152,12 @@ const checkRunningContainers = async () => {
       missingContainers.forEach((container) => {
         console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
       })
+    } else {
+      console.log(
+        `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
+          '✓ ACTIVE',
+        )} with ${runningContainersCount} containers.`,
+      )
     }
   } catch (p) {
     console.log(`[${chalk.red('E')}] Could not check running containers - ${p.stderr}`)

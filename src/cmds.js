@@ -149,7 +149,7 @@ const startEnv = async ({ type }) => {
 
 const stopEnv = async ({ type }) => {
   if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 0) {
-    await $`tmux kill-session -t checkly`
+    nothrow(await $`tmux kill-session -t checkly`)
   }
 
   switch (type) {

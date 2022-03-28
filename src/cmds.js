@@ -20,7 +20,7 @@ const statusEnv = async () => {
         return chalk.red('✗ INACTIVE')
       case inRange(num, 1, 4):
         return chalk.yellow('⚠ DEGRADED')
-      case 5:
+      case 6:
         return chalk.green('✓ ACTIVE')
       default:
         return chalk.white('UNKNOWN')
@@ -30,9 +30,7 @@ const statusEnv = async () => {
   // Tmux Status
   const windows = parseInt(await $`tmux display-message -t checkly -p '#{session_windows}'`)
   console.log(
-    `${chalk.bold('[*]')} ${chalk.bold.cyan('Checkly')} tmux ${statusColor(
-      windows,
-    )} with ${windows} windows.`,
+    `[*] ${chalk.bold.cyan('Checkly')} tmux ${statusColor(windows)} with ${windows} windows.`,
   )
 
   // Docker Status

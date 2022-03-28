@@ -5,6 +5,12 @@ const typeSchema = {
   ALL: 'ALL',
 }
 
+const flagsSchema = {
+  [typeSchema.FRONTEND]: ['f', 'fe', 'frontend'],
+  [typeSchema.BACKEND]: ['b', 'be', 'backend'],
+  [typeSchema.CONTAINERS]: ['c', 'container', 'containers'],
+}
+
 const printUsage = () => {
   console.log(`
     Usage:
@@ -68,11 +74,20 @@ const prereqCheck = () => {
 }
 
 const getType = () => {
-  if (argv.f) {
+  if (
+    flagsSchema[typeSchema.FRONTEND].includes(argv) ||
+    flagsSchema[typeSchema.FRONTEND].includes(argv['_'])
+  ) {
     return typeSchema.FRONTEND
-  } else if (argv.b) {
+  } else if (
+    flagsSchema[typeSchema.BACKEND].includes(argv) ||
+    flagsSchema[typeSchema.BACKEND].includes(argv['_'])
+  ) {
     return typeSchema.BACKEND
-  } else if (argv.c) {
+  } else if (
+    flagsSchema[typeSchema.CONTAINERS].includes(argv) ||
+    flagsSchema[typeSchema.CONTAINERS].includes(argv['_'])
+  ) {
     return typeSchema.CONTAINERS
   } else {
     return typeSchema.ALL

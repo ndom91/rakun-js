@@ -5,15 +5,17 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "zx ./src/index.js"
+    "start": "zx ./src/index.js",
+    "build": "esbuild src/index.js --bundle --platform=node --target=node16 --format=esm --outfile=dist/rakun.js"
   },
   "bin": {
-    "rakun": "./src/index.js"
+    "rakun": "./dist/rakun.js"
   },
   "keywords": [],
   "author": "ndom91 <yo@ndo.dev>",
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.14.28",
     "lint-staged": "^12.3.7",
     "prettier": "^2.6.1",
     "simple-git-hooks": "^2.7.0"

@@ -62,39 +62,29 @@ const statusEnv = async () => {
 const restartEnv = async ({ type }) => {
   switch (type) {
     case typeSchema.FRONTEND:
-      await Promise.all([
-        $`tmux kill-window -t checkly:webapp &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`,
-      ])
-      // START FE
+      await stopEnv({ type: typeSchema.FRONTEND })
+      await startEnv({ type: typeSchema.FRONTEND })
       break
     case typeSchema.BACKEND:
-      await Promise.all([
-        $`tmux kill-window -t checkly:api &>/dev/null`,
-        $`tmux kill-window -t checkly:functions &>/dev/null`,
-        $`tmux kill-window -t checkly:daemons &>/dev/null`,
-        $`pkill -f 'node daemons/' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
-      ])
-      // START BE
+      await stopEnv({ type: typeSchema.BACKEND })
+      await startEnv({ type: typeSchema.BACKEND })
       break
     case typeSchema.ALL:
-      await Promise.all([
-        $`tmux kill-window -t checkly:api &>/dev/null`,
-        $`tmux kill-window -t checkly:functions &>/dev/null`,
-        $`tmux kill-window -t checkly:daemons &>/dev/null`,
-        $`tmux kill-window -t checkly:webapp &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`,
-        $`pkill -f 'node daemons/' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
-      ])
+      await stopEnv({ type: typeSchema.ALL })
+      await startEnv({ type: typeSchema.ALL })
       break
     case typeSchema.CONTAINERS:
       if (countRunningContainers() === 0) {
-        console.log(chalk.red('No containers running'))
-        let machineAnswer = await question('Check in docker-machine? [Y/N]')
+        console.log(
+          `[${chalk.yellow('W')}] ${chalk.red(
+            'No containers running on host',
+          )}`,
+        )
+        let machineAnswer = await question(
+          `[${chalk.white(
+            'Q',
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+        )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
         }
@@ -102,19 +92,10 @@ const restartEnv = async ({ type }) => {
       await $`docker container restart $(docker container ls -a -q --filter name=devenv*) 1>/dev/null`
       break
     default:
-      await Promise.all([
-        $`tmux kill-window -t checkly:api &>/dev/null`,
-        $`tmux kill-window -t checkly:functions &>/dev/null`,
-        $`tmux kill-window -t checkly:daemons &>/dev/null`,
-        $`tmux kill-window -t checkly:webapp &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`,
-        $`pkill -f 'node daemons/' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
-      ])
+      await stopEnv({ type: typeSchema.ALL })
+      await startEnv({ type: typeSchema.ALL })
       break
   }
-  await $`docker-compose -f ${$.prefix}docker-compose.yml restart`
 }
 
 const startEnv = async ({ type }) => {
@@ -131,19 +112,35 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
+        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
     case typeSchema.CONTAINERS:
       if (countRunningContainers() === 0) {
-        console.log(chalk.red('No containers running'))
-        let machineAnswer = await question('Check in docker-machine? [Y/N]')
+        console.log(
+          `[${chalk.yellow('W')}] ${chalk.red(
+            'No containers running on host',
+          )}`,
+        )
+        let machineAnswer = await question(
+          `[${chalk.white(
+            'Q',
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+        )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
         }
       }
-      await $`docker container stop $(docker container ls -a -q --filter name=devenv*) 1>/dev/null`
+      await $`docker container start $(docker container ls -a -q --filter name=devenv*) 1>/dev/null`
       break
     case typeSchema.ALL:
+      await Promise.all([
+        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`,
+        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
+        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && npm run start:local"`,
+        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
+        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+      ])
       break
     default:
       break
@@ -158,24 +155,38 @@ const stopEnv = async ({ type }) => {
   switch (type) {
     case typeSchema.FRONTEND:
       await Promise.all([
-        $`tmux kill-window -t checkly:webapp &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`,
+        nothrow($`tmux kill-window -t checkly:webapp &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
       ])
       break
     case typeSchema.BACKEND:
       await Promise.all([
-        $`tmux kill-window -t checkly:api &>/dev/null`,
-        $`tmux kill-window -t checkly:functions &>/dev/null`,
-        $`tmux kill-window -t checkly:daemons &>/dev/null`,
-        $`pkill -f 'node daemons/' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
+        nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`pkill -f 'node daemons/' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
+        ),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`,
+        ),
       ])
       break
     case typeSchema.CONTAINERS:
       if (countRunningContainers() === 0) {
-        console.log(chalk.red('No containers running'))
-        let machineAnswer = await question('Check in docker-machine? [Y/N]')
+        console.log(
+          `[${chalk.yellow('W')}] ${chalk.red(
+            'No containers running on host',
+          )}`,
+        )
+        let machineAnswer = await question(
+          `[${chalk.white(
+            'Q',
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+        )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
         }
@@ -184,14 +195,20 @@ const stopEnv = async ({ type }) => {
       break
     case typeSchema.ALL:
       await Promise.all([
-        $`tmux kill-window -t checkly:api &>/dev/null`,
-        $`tmux kill-window -t checkly:functions &>/dev/null`,
-        $`tmux kill-window -t checkly:daemons &>/dev/null`,
-        $`tmux kill-window -t checkly:webapp &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`,
-        $`pkill -f 'node daemons/' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`,
-        $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
+        nothrow($`tmux kill-window -t checkly:webapp &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
+        nothrow($`pkill -f 'node daemons/' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`,
+        ),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`,
+        ),
       ])
       break
     default:
@@ -200,7 +217,7 @@ const stopEnv = async ({ type }) => {
 }
 
 const cleanEnv = async () => {
-  await $`docker-compose -f ${$.prefix}docker-compose.yml down -v`
+  await stopEnv({ type: typeSchema.ALL })
 }
 
 export { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv }

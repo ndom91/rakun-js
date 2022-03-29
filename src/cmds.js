@@ -124,15 +124,18 @@ const startEnv = async ({ type }) => {
       ])
       break
     default:
+      await Promise.all([
+        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`,
+        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
+        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && npm run start:local"`,
+        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
+        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+      ])
       break
   }
 }
 
 const stopEnv = async ({ type }) => {
-  if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 0) {
-    nothrow(await $`tmux kill-session -t checkly`)
-  }
-
   switch (type) {
     case typeSchema.FRONTEND:
       await Promise.all([
@@ -179,12 +182,27 @@ const stopEnv = async ({ type }) => {
       ])
       break
     default:
+      await Promise.all([
+        nothrow($`tmux kill-window -t checkly:webapp &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
+        nothrow($`pkill -f 'node daemons/' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+      ])
       break
   }
 }
 
 const cleanEnv = async () => {
   await stopEnv({ type: typeSchema.ALL })
+  if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 0) {
+    nothrow(await $`tmux kill-session -t checkly`)
+  }
 }
 
 export { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv }

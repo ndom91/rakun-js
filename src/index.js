@@ -38,6 +38,9 @@ const main = async () => {
       case 'clean':
         await cleanEnv()
         break
+      case undefined:
+        await statusEnv()
+        break
       case 'help':
         printHelp(0)
       default:

@@ -39,9 +39,11 @@ const statusEnv = async () => {
   const containerCount = await countRunningContainers()
   if (containerCount === 0) {
     console.log()
-    console.log(`[${chalk.yellow('W')}] ${chalk.red('No containers running on host')}`)
+    console.log(`[${chalk.yellow('W')}] ${chalk.red('No containers')} running on this host!`)
     let machineAnswer = await question(
-      `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+      `[${chalk.white('Q')}] Check in ${chalk.bold(
+        'docker-machine',
+      )}? ("${getDockerMachineHost()}") [y/n] `,
     )
     if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
       await activateDockerMachine()

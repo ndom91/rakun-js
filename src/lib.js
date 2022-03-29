@@ -110,7 +110,7 @@ const getDockerMachineHost = () => {
     ? process.env.DOCKER_MACHINE_NAME
     : argv.h
     ? argv.h
-    : 'default'
+    : 'ndo-docker'
 }
 
 const activateDockerMachine = async () => {
@@ -132,7 +132,7 @@ const activateDockerMachine = async () => {
         process.env[envVar[0]] = envVar[1]
       })
   } catch (p) {
-    console.log(`[${chalk.red('E')}] Could not activate docker-machine - ${p.stderr}`)
+    console.log(`[${chalk.red('E')}] Could not activate docker-machine\n    ${p.stderr}`)
     process.exit(1)
   }
 }
@@ -165,7 +165,7 @@ const checkRunningContainers = async () => {
       })
     } else {
       console.log(
-        `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
+        `\n[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
           '✓ ACTIVE',
         )} with ${runningContainersCount} containers.`,
       )

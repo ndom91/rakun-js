@@ -24,6 +24,7 @@ $ rakun -m -h ndo-docker status
   FLAGS:
     -m [BOOL]        use docker-machine
     -h [STRING]      docker-machine hostname
+    -cd              checkly directory
 
   ACTIONS:
     help, -h         display this help output

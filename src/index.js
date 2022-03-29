@@ -1,10 +1,9 @@
 #!/usr/bin/env zx
 
-$.verbose = false
-
 import { getType, printHelp, prereqCheck, activateDockerMachine } from './lib.js'
-
 import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.js'
+
+$.verbose = false
 
 const main = async () => {
   if (argv.version || argv.v) {
@@ -42,6 +41,7 @@ const main = async () => {
       case 'help':
         printHelp(0)
       default:
+        console.log(`\n[${chalk.red('E')}] Command ${argv._[1]} does not exist`)
         printHelp(0)
     }
   } catch (err) {

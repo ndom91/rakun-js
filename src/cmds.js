@@ -18,10 +18,12 @@ const statusEnv = async () => {
     switch (num) {
       case 0:
         return chalk.red('✗ INACTIVE')
-      case inRange(num, 1, 4):
+      case inRange(num, 1, 5):
         return chalk.yellow('⚠ DEGRADED')
       case 6:
         return chalk.green('✓ ACTIVE')
+      case num > 6:
+        return chalk.white('UNKNOWN')
       default:
         return chalk.white('UNKNOWN')
     }

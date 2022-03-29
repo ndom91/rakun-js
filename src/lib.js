@@ -19,6 +19,7 @@ const printUsage = () => {
     Flags:
       -m      activate docker-mmachine
       -h      docker-machine hostname
+      -cd     checkly directory
 
     Action:
       restart

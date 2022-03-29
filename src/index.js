@@ -22,6 +22,7 @@ const main = async () => {
       await activateDockerMachine()
     }
     const type = getType()
+    console.log('TYPE', type)
 
     switch (argv._[1]) {
       case 'restart':

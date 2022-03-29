@@ -22,22 +22,27 @@ $ rakun -m -h ndo-docker status
 
 ```bash
   FLAGS:
-    -m [BOOL]       use docker-machine
-    -h [STRING]     docker-machine hostname
+    -m [BOOL]        use docker-machine
+    -h [STRING]      docker-machine hostname
 
   ACTIONS:
-    help, -h        display this help output
-    status, -s      show current status of tmux window and containers
+    help, -h         display this help output
+    status           show current status of tmux window and containers
 
-    start, -x       start all development processes
-      frontend -xf  start frontend only
-      backend -xb   start backend only
-    restart, -r     restart running development processes
-      frontend, -rf restart frontend only
-      backend, -rb  restart backend only
+    start            start all development processes
+      frontend, -f   start frontend only
+      backend, -b    start backend only
+      containers, -c start containers only
+    restart          restart running development processes
+      frontend, -f   restart frontend only
+      backend, -b    restart backend only
+      containers, -c restart containers only
+    stop             stop and kill any running processes
+      frontend, -f   stop frontend only
+      backend, -b    stop backend only
+      containers, -c stop containers only
 
-    stop, -S        stop and kill any running processes
-    clean, -c       ensure no development processes or containers are left running
+    clean            ensure no development processes or containers are left running
 ```
 
 ## Contributing 🫠

@@ -73,20 +73,30 @@ const prereqCheck = () => {
   }
 }
 
+const includesArg = (arr, args) => {
+  return arr.some((item) => {
+    if (!Array.isArray(args)) {
+      return Object.keys(args).includes(item)
+    } else {
+      return args.includes(item)
+    }
+  })
+}
+
 const getType = () => {
   if (
-    flagsSchema[typeSchema.FRONTEND].includes(argv) ||
-    flagsSchema[typeSchema.FRONTEND].includes(argv['_'])
+    includesArg(flagsSchema[typeSchema.FRONTEND], argv) ||
+    includesArg(flagsSchema[typeSchema.FRONTEND], argv['_'])
   ) {
     return typeSchema.FRONTEND
   } else if (
-    flagsSchema[typeSchema.BACKEND].includes(argv) ||
-    flagsSchema[typeSchema.BACKEND].includes(argv['_'])
+    includesArg(flagsSchema[typeSchema.BACKEND], argv) ||
+    includesArg(flagsSchema[typeSchema.BACKEND], argv['_'])
   ) {
     return typeSchema.BACKEND
   } else if (
-    flagsSchema[typeSchema.CONTAINERS].includes(argv) ||
-    flagsSchema[typeSchema.CONTAINERS].includes(argv['_'])
+    includesArg(flagsSchema[typeSchema.CONTAINERS], argv) ||
+    includesArg(flagsSchema[typeSchema.CONTAINERS], argv['_'])
   ) {
     return typeSchema.CONTAINERS
   } else {

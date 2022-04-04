@@ -22,26 +22,27 @@ $ rakun -m -h ndo-docker status
 
 ```bash
   FLAGS:
-    -m [BOOL]        use docker-machine
-    -h [STRING]      docker-machine hostname
-    -cd              checkly directory
+    -m [BOOL]          use docker-machine
+    -h [STRING]        docker-machine hostname
+    -cd                checkly directory
 
   ACTIONS:
-    help, -h         display this help output
-    status           show current status of tmux window and containers
-
-    start            start all development processes
-      frontend, -f   start frontend only
-      backend, -b    start backend only
-      containers, -c start containers only
-    restart          restart running development processes
-      frontend, -f   restart frontend only
-      backend, -b    restart backend only
-      containers, -c restart containers only
-    stop             stop and kill any running processes
-      frontend, -f   stop frontend only
-      backend, -b    stop backend only
-      containers, -c stop containers only
+    help, -h           display this help output
+    status, -s         show current status of tmux window and containers
+      frontend, -f     start frontend only
+      backend, -b      start backend only
+      containers, -c   start containers only
+      datapipeline, -d start data-pipeline only
+    restart            restart running development processes
+      frontend, -f     restart frontend only
+      backend, -b      restart backend only
+      containers, -c   restart containers only
+      datapipeline, -d restart data-pipeline only
+    stop               stop and kill any running processes
+      frontend, -f     stop frontend only
+      backend, -b      stop backend only
+      containers, -c   stop containers only
+      datapipeline, -d stop data-pipeline only
 
     clean            ensure no development processes or containers are left running
 ```

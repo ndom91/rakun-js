@@ -10,7 +10,7 @@ const flagsSchema = {
   [typeSchema.FRONTEND]: ['f', 'fe', 'frontend'],
   [typeSchema.BACKEND]: ['b', 'be', 'backend'],
   [typeSchema.CONTAINERS]: ['c', 'container', 'containers'],
-  [typeSchema.DATAPIPELINE]: ['d', 'data-pipeline', 'data', 'pipeline'],
+  [typeSchema.DATAPIPELINE]: ['d', 'datapipeline', 'data', 'pipeline'],
 }
 
 const printUsage = () => {

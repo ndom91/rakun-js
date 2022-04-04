@@ -1,4 +1,5 @@
 const typeSchema = {
+  DATAPIPELINE: 'DATAPIPELINE',
   CONTAINERS: 'CONTAINERS',
   FRONTEND: 'FRONTEND',
   BACKEND: 'BACKEND',
@@ -9,6 +10,7 @@ const flagsSchema = {
   [typeSchema.FRONTEND]: ['f', 'fe', 'frontend'],
   [typeSchema.BACKEND]: ['b', 'be', 'backend'],
   [typeSchema.CONTAINERS]: ['c', 'container', 'containers'],
+  [typeSchema.DATAPIPELINE]: ['d', 'data-pipeline', 'data', 'pipeline'],
 }
 
 const printUsage = () => {
@@ -95,6 +97,11 @@ const getType = () => {
     includesArg(flagsSchema[typeSchema.BACKEND], argv['_'])
   ) {
     return typeSchema.BACKEND
+  } else if (
+    includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv) ||
+    includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv['_'])
+  ) {
+    return typeSchema.DATAPIPELINE
   } else if (
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv) ||
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv['_'])

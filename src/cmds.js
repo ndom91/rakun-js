@@ -20,6 +20,8 @@ const statusEnv = async () => {
         return chalk.red('✗ INACTIVE')
       case inRange(num, 1, 5):
         return chalk.yellow('⚠ DEGRADED')
+      case 5:
+        return `${chalk.green('✓ ACTIVE')} (without "data-pipeline")`
       case 6:
         return chalk.green('✓ ACTIVE')
       case num > 6:
@@ -69,6 +71,10 @@ const restartEnv = async ({ type }) => {
     case typeSchema.ALL:
       await stopEnv({ type: typeSchema.ALL })
       await startEnv({ type: typeSchema.ALL })
+      break
+    case typeSchema.DATAPIPELINE:
+      await stopEnv({ type: typeSchema.DATAPIPELINE })
+      await startEnv({ type: typeSchema.DATAPIPELINE })
       break
     case typeSchema.CONTAINERS:
       if (countRunningContainers() === 0) {
@@ -127,6 +133,11 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
+    case typeSchema.DATAPIPELINE:
+      await Promise.all([
+        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+      ])
+      break
     default:
       await Promise.all([
         $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`,
@@ -182,6 +193,12 @@ const stopEnv = async ({ type }) => {
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`),
+        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+      ])
+      break
+    case typeSchema.DATAPIPELINE:
+      await Promise.all([
+        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
       ])
       break

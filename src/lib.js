@@ -19,25 +19,24 @@ const printUsage = () => {
       ${chalk.bgGreenBright.black('  rakun  ')} [FLAGS] [ACTION]
 
     Flags:
-      -m      activate docker-mmachine
-      -h      docker-machine hostname
-      -cd     checkly directory
+      -m          activate docker-mmachine
+      -h          docker-machine hostname
+      -cd         checkly directory
 
     Action:
-      restart
-        Restarts all running contiainers and processes.
+      help        print this help output
+      status, -s  print status of all processes and containers
+      restart     restarts all running contiainers and processes
+      start       starts up all processes
+      stop        stops all running dev processes and containers
+      clean       ensures no more processes are running.
 
-      start
-        Starts up all processes.
+    Action Modifiers:
+      -f, -fe     frontend
+      -b, -be     backend
+      -d, -data   datapipeline
+      -c          containers
 
-      stop
-        Stops all running dev processes and containers
-
-      clean
-        Ensures no more processes are running.
-
-    Options:
-      --help
 `)
 }
 
@@ -60,7 +59,7 @@ const countRunningContainers = async () => {
 const prereqCheck = () => {
   // Check if tmux exists
   if (!which.sync('tmux', { nothrow: true })) {
-    console.log(`[${chalk.red('Error')}] Please install tmux before continuing!`)
+    console.log(`[${chalk.red('E')}] Please install tmux before continuing!`)
     process.exit(1)
   }
 
@@ -69,9 +68,7 @@ const prereqCheck = () => {
     !which.sync('docker', { nothrow: true }) &&
     !which.sync('docker-compose', { nothrow: true })
   ) {
-    console.log(
-      `[${chalk.red('Error')}] Please install docker and docker-compose before continuing!`,
-    )
+    console.log(`[${chalk.red('E')}] Please install docker and docker-compose before continuing!`)
     process.exit(1)
   }
 }

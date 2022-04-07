@@ -29,6 +29,7 @@ $ rakun -m -h ndo-docker status
   ACTIONS:
     help, -h           display this help output
     status, -s         show current status of tmux window and containers
+    start              start all development processes
       frontend, -f     start frontend only
       backend, -b      start backend only
       containers, -c   start containers only

@@ -169,7 +169,7 @@ const checkRunningContainers = async () => {
       })
     } else {
       console.log(
-        `\n[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
+        `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
           '✓ ACTIVE',
         )} with ${runningContainersCount} containers.`,
       )

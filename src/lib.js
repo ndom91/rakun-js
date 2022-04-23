@@ -16,7 +16,12 @@ const flagsSchema = {
 const printUsage = () => {
   console.log(`
     Usage:
-      ${chalk.bgGreenBright.black('  rakun  ')} [FLAGS] [ACTION]
+      ${chalk.bgGreenBright.black('  rakun  ')} [FLAGS] [ACTION] [MODIFIERS]
+
+    Example:
+      ${chalk.greenBright('rakun')} restart -d
+      ${chalk.greenBright('rakun')} -cd /opt/checkly stop
+      ${chalk.greenBright('rakun')} -m status
 
     Flags:
       -m          activate docker-mmachine
@@ -36,7 +41,6 @@ const printUsage = () => {
       -b, -be     backend
       -d, -data   datapipeline
       -c          containers
-
 `)
 }
 

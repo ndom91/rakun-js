@@ -38,8 +38,7 @@ const statusEnv = async () => {
   )
 
   // Docker Status
-  const containerCount = await countRunningContainers()
-  if (containerCount === 0) {
+  if ((await countRunningContainers()) === 0) {
     console.log(`[${chalk.yellow('W')}] No containers running on host`)
     let machineAnswer = await question(
       `[${chalk.white('Q')}] Check in ${chalk.bold(
@@ -76,7 +75,7 @@ const restartEnv = async ({ type }) => {
       await startEnv({ type: typeSchema.DATAPIPELINE })
       break
     case typeSchema.CONTAINERS:
-      if (countRunningContainers() === 0) {
+      if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
           `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
@@ -112,7 +111,7 @@ const startEnv = async ({ type }) => {
       ])
       break
     case typeSchema.CONTAINERS:
-      if (countRunningContainers() === 0) {
+      if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
           `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
@@ -170,7 +169,7 @@ const stopEnv = async ({ type }) => {
       ])
       break
     case typeSchema.CONTAINERS:
-      if (countRunningContainers() === 0) {
+      if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
           `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,

@@ -5,6 +5,7 @@ import {
   getDockerMachineHost,
   activateDockerMachine,
   checkRunningContainers,
+  checkRunningWindows,
   countRunningContainers,
 } from './lib.js'
 
@@ -14,27 +15,38 @@ const statusEnv = async () => {
     return
   }
 
-  let statusColor = (num) => {
+  let statusColor = async (num) => {
+    const missingWindows = await checkRunningWindows()
+    let msg = ''
+
+    console.log('NUM', num)
     switch (num) {
       case 0:
-        return chalk.red('✗ INACTIVE')
+        msg = chalk.red('✗ INACTIVE')
+        break
       case inRange(num, 1, 5):
-        return chalk.yellow('⚠ DEGRADED')
-      case 5:
-        return `${chalk.green('✓ ACTIVE')} (without "data-pipeline")`
+        console.log('DEGRADED YALL!')
+        msg = `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(', ')}")`
+        break
       case 6:
-        return chalk.green('✓ ACTIVE')
+        msg = chalk.green('✓ ACTIVE')
+        break
       case num > 6:
-        return chalk.white('UNKNOWN')
-      default:
-        return chalk.white('UNKNOWN')
+        console.log('GREATER YALL!')
+        msg = chalk.white('UNKNOWN')
+        break
+      // default:
+      //   console.log('DEFAULT YALL!')
+      //   msg = chalk.white('UNKNOWN')
+      //   break
     }
+    return msg
   }
 
   // Tmux Status
   const windows = parseInt(await $`tmux display-message -t checkly -p '#{session_windows}'`)
   console.log(
-    `[*] ${chalk.bold.cyan('Checkly')} tmux ${statusColor(windows)} with ${windows} windows.`,
+    `[*] ${chalk.bold.cyan('Checkly')} tmux ${await statusColor(windows)} with ${windows} windows.`,
   )
 
   // Docker Status

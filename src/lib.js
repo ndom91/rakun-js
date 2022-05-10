@@ -145,6 +145,32 @@ const activateDockerMachine = async () => {
   }
 }
 
+const checkRunningWindows = async () => {
+  try {
+    const filteredOutput = await $`tmux display -t checkly -p '#{W:#{window_name} }'`
+    const runningWindows = filteredOutput.stdout
+      .split(' ')
+      .filter(Boolean)
+      .filter((w) => w !== '\n')
+    const runningWindowsCount = runningWindows.length
+
+    if (runningWindowsCount !== 6) {
+      const allWindows = ['bash', 'webapp', 'api', 'functions', 'daemons', 'datapipeline']
+
+      // Diff missingCOntainers array and runningContainers array
+      const missingWindows = allWindows.filter((cont) => {
+        return !runningWindows.includes(cont)
+      })
+
+      // console.log(`[${chalk.red('E')}] Missing windows: ${missingWindows.join(', ')}`)
+      return missingWindows
+    }
+    return []
+  } catch (p) {
+    console.error(p)
+  }
+}
+
 const checkRunningContainers = async () => {
   try {
     const filteredOutput =
@@ -184,9 +210,8 @@ const checkRunningContainers = async () => {
   }
 }
 
-const inRange = (x, min, max) => {
-  return (x - min) * (x - max) <= 0
-}
+const inRange = (num, a, b, threshold = 0) =>
+  Math.min(a, b) - threshold <= num && num <= Math.max(a, b) + threshold
 
 export {
   getType,
@@ -199,4 +224,5 @@ export {
   activateDockerMachine,
   countRunningContainers,
   checkRunningContainers,
+  checkRunningWindows,
 }

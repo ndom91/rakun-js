@@ -7,7 +7,7 @@ Experimental js cli for managing my local development environment
 You can either download the `latest` release from the [releases](https://github.com/ndom91/rakun/releases) tab, or install the repo via `npm`.
 
 ```bash
-$ npm install https://github.com/ndom91/rakun
+$ npm install -g https://github.com/ndom91/rakun.js
 ```
 
 Once installed, the cli can be used via the common pattern of `rakun [FLAGS] [ACTION]`, like the following examples.
@@ -17,6 +17,8 @@ $ rakun --help
 $ rakun restart
 $ rakun -m -h ndo-docker status
 ```
+
+> Tip: After building the project, run `npm link` in the root of the repo to link the `rakun` binary to a directory in your systems `$PATH` so you can use the command `rakun` anywhere.
 
 ## Options 🕹️
 

@@ -19,7 +19,6 @@ const statusEnv = async () => {
     const missingWindows = await checkRunningWindows()
     let msg = ''
 
-    console.log('NUM', num)
     switch (num) {
       case 0:
         msg = chalk.red('✗ INACTIVE')
@@ -32,13 +31,13 @@ const statusEnv = async () => {
         msg = chalk.green('✓ ACTIVE')
         break
       case num > 6:
-        console.log('GREATER YALL!')
+        console.log('GREATER')
         msg = chalk.white('UNKNOWN')
         break
-      // default:
-      //   console.log('DEFAULT YALL!')
-      //   msg = chalk.white('UNKNOWN')
-      //   break
+      default:
+        console.log('DEFAULT')
+        msg = chalk.white('UNKNOWN')
+        break
     }
     return msg
   }

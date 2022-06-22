@@ -14,8 +14,6 @@ const main = async () => {
     $.verbose = true
   }
 
-  console.log(argv)
-
   try {
     prereqCheck()
     if (argv.m) {

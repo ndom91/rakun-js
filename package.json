@@ -1,6 +1,6 @@
 {
   "name": "rakun-js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Experimental js cli for managing my local development environment",
   "main": "src/index.js",
   "type": "module",
@@ -15,13 +15,13 @@
   "author": "ndom91 <yo@ndo.dev>",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.14.28",
-    "lint-staged": "^12.3.7",
-    "prettier": "^2.6.1",
-    "simple-git-hooks": "^2.7.0"
+    "esbuild": "^0.14.47",
+    "lint-staged": "^13.0.2",
+    "prettier": "^2.7.1",
+    "simple-git-hooks": "^2.8.0"
   },
   "dependencies": {
-    "zx": "^6.0.7"
+    "zx": "^7.0.1"
   },
   "prettier": {
     "semi": false,

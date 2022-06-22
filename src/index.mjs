@@ -1,11 +1,10 @@
 #!/usr/bin/env zx
 
-import { getType, printHelp, prereqCheck, activateDockerMachine } from './lib.js'
-import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.js'
-
-$.verbose = false
+import { getType, printHelp, prereqCheck, activateDockerMachine } from './lib.mjs'
+import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.mjs'
 
 const main = async () => {
+  $.verbose = false
   if (argv.version || argv.v) {
     const { version } = require('./../package.json')
     console.log(version)
@@ -14,6 +13,8 @@ const main = async () => {
   if (argv.verbose) {
     $.verbose = true
   }
+
+  console.log(argv)
 
   try {
     prereqCheck()

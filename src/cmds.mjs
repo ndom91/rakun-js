@@ -1,4 +1,4 @@
-import { checklyDir } from './config.js'
+import { IDEAL_TMUX_WINDOWS, checklyDir } from './config.mjs'
 import {
   inRange,
   typeSchema,
@@ -7,7 +7,7 @@ import {
   checkRunningContainers,
   checkRunningWindows,
   countRunningContainers,
-} from './lib.js'
+} from './lib.mjs'
 
 const statusEnv = async () => {
   if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 1) {
@@ -15,38 +15,26 @@ const statusEnv = async () => {
     return
   }
 
-  let statusColor = async (num) => {
+  let statusColoredMsg = async (num) => {
     const missingWindows = await checkRunningWindows()
-    let msg = ''
 
-    switch (num) {
-      case 0:
-        msg = chalk.red('✗ INACTIVE')
-        break
-      case inRange(num, 1, 5):
-        console.log('DEGRADED YALL!')
-        msg = `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(', ')}")`
-        break
-      case 6:
-        msg = chalk.green('✓ ACTIVE')
-        break
-      case num > 6:
-        console.log('GREATER')
-        msg = chalk.white('UNKNOWN')
-        break
-      default:
-        console.log('DEFAULT')
-        msg = chalk.white('UNKNOWN')
-        break
+    if (num === 0) {
+      return chalk.red('✗ INACTIVE')
+    } else if (inRange(num, 0, IDEAL_TMUX_WINDOWS - 1)) {
+      return `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(', ')}")`
+    } else if (num === IDEAL_TMUX_WINDOWS) {
+      return chalk.green('✓ ACTIVE')
+    } else if (num > IDEAL_TMUX_WINDOWS) {
+      return chalk.white('UNKNOWN')
+    } else {
+      return chalk.white('UNKNOWN')
     }
-    return msg
   }
 
   // Tmux Status
   const windows = parseInt(await $`tmux display-message -t checkly -p '#{session_windows}'`)
-  console.log(
-    `[*] ${chalk.bold.cyan('Checkly')} tmux ${await statusColor(windows)} with ${windows} windows.`,
-  )
+  const msg = await statusColoredMsg(windows)
+  console.log(`[*] ${chalk.bold.cyan('Checkly')} tmux ${msg} with ${windows} windows.`)
 
   // Docker Status
   if ((await countRunningContainers()) === 0) {

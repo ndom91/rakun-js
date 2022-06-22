@@ -2,11 +2,11 @@
   "name": "rakun-js",
   "version": "1.2.0",
   "description": "Experimental js cli for managing my local development environment",
-  "main": "src/index.js",
+  "main": "src/index.mjs",
   "type": "module",
   "scripts": {
-    "start": "zx ./src/index.js",
-    "build": "esbuild src/index.js --bundle --platform=node --target=node16 --format=esm --outfile=dist/rakun.js"
+    "start": "zx ./src/index.mjs",
+    "build": "esbuild src/index.mjs --bundle --platform=node --target=node16 --format=esm --outfile=dist/rakun.js"
   },
   "bin": {
     "rakun": "./dist/rakun.js"

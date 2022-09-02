@@ -21,7 +21,10 @@ const main = async () => {
     }
     const type = getType()
 
-    switch (argv._[1]) {
+    // console.log('type', type)
+    // console.log('argv', argv)
+    // console.log('argv[1]', argv._[0])
+    switch (argv._[0]) {
       case 'restart':
         await restartEnv({ type })
         break

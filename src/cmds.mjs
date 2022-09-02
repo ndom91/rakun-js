@@ -93,19 +93,20 @@ const restartEnv = async ({ type }) => {
 }
 
 const startEnv = async ({ type }) => {
-  if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 1) {
-    await $`tmux new -s checkly -d`
+  if ((await $`tmux has-session -t checkly`.exitCode) === 1) {
+    console.log('creating session')
+    await $`tmux new -c ${checklyDir} -s checkly -D`
   }
 
   switch (type) {
     case typeSchema.FRONTEND:
-      await $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && fnm exec npm run serve"`
+      await $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`
       break
     case typeSchema.BACKEND:
-      await Promise.all([
-        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:watch"`,
-        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && fnm exec npm run start:local"`,
-        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:all-daemons:watch"`,
+      const output = await Promise.all([
+        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
+        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && npm run start:local"`,
+        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
@@ -123,10 +124,9 @@ const startEnv = async ({ type }) => {
       break
     case typeSchema.ALL:
       await Promise.all([
-        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && fnm exec npm run serve"`,
-        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:watch"`,
-        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && fnm exec npm run start:local"`,
-        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:all-daemons:watch"`,
+        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`,
+        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
+        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
@@ -137,10 +137,10 @@ const startEnv = async ({ type }) => {
       break
     default:
       await Promise.all([
-        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && fnm exec npm run serve"`,
-        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:watch"`,
-        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && fnm exec npm run start:local"`,
-        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec npm run start:all-daemons:watch"`,
+        $`tmux neww -t checkly: -n webapp -d "cd ${checklyDir}/checkly-webapp && npm run serve"`,
+        $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && npm run start:watch"`,
+        $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-lambda-runners-merge/functions && npm run start:local"`,
+        $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break

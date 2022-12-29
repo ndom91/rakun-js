@@ -28,6 +28,9 @@ const main = async () => {
       case 'status':
         await statusEnv()
         break
+      case 'ps':
+        await statusEnv()
+        break
       case 'start':
         await startEnv({ type })
         break

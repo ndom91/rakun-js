@@ -118,7 +118,7 @@ const getDockerMachineHost = () => {
     ? process.env.DOCKER_MACHINE_NAME
     : argv.h
     ? argv.h
-    : 'ndo-docker'
+    : 'checkly-pi'
 }
 
 const activateDockerMachine = async () => {

@@ -1,3 +1,5 @@
+import { CONTAINER_SUBSTRINGS, IDEAL_CONTAINER_COUNT } from './config.mjs'
+
 const typeSchema = {
   DATAPIPELINE: 'DATAPIPELINE',
   CONTAINERS: 'CONTAINERS',
@@ -178,20 +180,17 @@ const checkRunningContainers = async () => {
     const runningContainers = filteredOutput.stdout.split('\n')
     const runningContainersCount = runningContainers.filter((cont) => cont).length
 
-    if (runningContainersCount !== 6) {
-      const missingContainers = ['sqs', 'clickhouse', 'db', 'redis', 'aurora', 'kinesis'].reduce(
-        (acc, containerName) => {
-          if (
-            runningContainers.filter((container) => {
-              return container.includes(containerName)
-            }).length === 0
-          ) {
-            acc.push(containerName)
-          }
-          return acc
-        },
-        [],
-      )
+    if (runningContainersCount !== IDEAL_CONTAINER_COUNT) {
+      const missingContainers = CONTAINER_SUBSTRINGS.reduce((acc, containerName) => {
+        if (
+          runningContainers.filter((container) => {
+            return container.includes(containerName)
+          }).length === 0
+        ) {
+          acc.push(containerName)
+        }
+        return acc
+      }, [])
 
       console.log(`[${chalk.red('E')}] It looks like the following containers are not running!`)
       missingContainers.forEach((container) => {

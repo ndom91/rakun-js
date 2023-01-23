@@ -21,7 +21,9 @@ const statusEnv = async () => {
     if (num === 0) {
       return chalk.red('✗ INACTIVE')
     } else if (inRange(num, 0, IDEAL_TMUX_WINDOWS - 1)) {
-      return `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(', ')}")`
+      return `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(
+        ', '
+      )}")`
     } else if (num === IDEAL_TMUX_WINDOWS) {
       return chalk.green('✓ ACTIVE')
     } else if (num > IDEAL_TMUX_WINDOWS) {
@@ -32,17 +34,21 @@ const statusEnv = async () => {
   }
 
   // Tmux Status
-  const windows = parseInt(await $`tmux display-message -t checkly -p '#{session_windows}'`)
+  const windows = parseInt(
+    await $`tmux display-message -t checkly -p '#{session_windows}'`
+  )
   const msg = await statusColoredMsg(windows)
-  console.log(`[*] ${chalk.bold.cyan('Checkly')} tmux ${msg} with ${windows} windows.`)
+  console.log(
+    `[*] ${chalk.bold.cyan('Checkly')} tmux ${msg} with ${windows} windows.`
+  )
 
   // Docker Status
   if ((await countRunningContainers()) === 0) {
     console.log(`[${chalk.yellow('W')}] No containers running on host`)
     let machineAnswer = await question(
       `[${chalk.white('Q')}] Check in ${chalk.bold(
-        'docker-machine',
-      )}? ("${getDockerMachineHost()}") [y/n] `,
+        'docker-machine'
+      )}? ("${getDockerMachineHost()}") [y/n] `
     )
     if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
       await activateDockerMachine()
@@ -77,7 +83,9 @@ const restartEnv = async ({ type }) => {
       if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
-          `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+          `[${chalk.white(
+            'Q'
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `
         )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
@@ -113,7 +121,9 @@ const startEnv = async ({ type }) => {
       if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
-          `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+          `[${chalk.white(
+            'Q'
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `
         )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
@@ -163,15 +173,21 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`
+        ),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
+        ),
       ])
       break
     case typeSchema.CONTAINERS:
       if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
         let machineAnswer = await question(
-          `[${chalk.white('Q')}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `,
+          `[${chalk.white(
+            'Q'
+          )}] Check in docker-machine? ("${getDockerMachineHost()}") [y/n] `
         )
         if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
           await activateDockerMachine()
@@ -189,14 +205,20 @@ const stopEnv = async ({ type }) => {
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`
+        ),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
+        ),
       ])
       break
     case typeSchema.DATAPIPELINE:
       await Promise.all([
         nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
+        ),
       ])
       break
     default:
@@ -209,8 +231,12 @@ const stopEnv = async ({ type }) => {
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`),
-        nothrow($`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-lambda-runners-merge' &>/dev/null`
+        ),
+        nothrow(
+          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
+        ),
       ])
       break
   }

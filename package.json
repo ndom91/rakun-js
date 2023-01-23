@@ -16,6 +16,9 @@
   "license": "MIT",
   "devDependencies": {
     "esbuild": "^0.14.47",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "lint-staged": "^13.0.2",
     "prettier": "^2.7.1",
     "simple-git-hooks": "^2.8.0"
@@ -24,18 +27,38 @@
     "zx": "^7.0.1"
   },
   "packageManager": "pnpm@7.5.1",
-  "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "all",
-    "printWidth": 100
-  },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
   },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error"
+    }
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "bracketSpacing": true,
+    "arrowSpacing": true
+  },
   "lint-staged": {
-    "*.{js,mjs,jsx,ts,tsx}": [
+    "*.{js,jsx,mjs,ts,tsx,css,json}": [
       "prettier --write"
+    ],
+    "*.{js,jsx,mjs}": [
+      "eslint --fix"
     ]
   }
 }

@@ -1,6 +1,11 @@
 #!/usr/bin/env zx
 
-import { getType, printHelp, prereqCheck, activateDockerMachine } from './lib.mjs'
+import {
+  getType,
+  printHelp,
+  prereqCheck,
+  activateDockerMachine,
+} from './lib.mjs'
 import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.mjs'
 
 const main = async () => {
@@ -45,6 +50,7 @@ const main = async () => {
         break
       case 'help':
         printHelp(0)
+        break
       default:
         console.log(`\n[${chalk.red('E')}] Command ${argv._[1]} does not exist`)
         printHelp(0)

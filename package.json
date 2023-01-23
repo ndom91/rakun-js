@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "zx ./src/index.mjs",
+    "lint": "eslint src/**/*",
+    "lint:fix": "eslint --fix src/**/*",
     "build": "esbuild src/index.mjs --bundle --platform=node --target=node16 --format=esm --outfile=dist/rakun.js"
   },
   "bin": {
@@ -31,12 +33,24 @@
     "pre-commit": "npx lint-staged"
   },
   "eslintConfig": {
+    "globals": {
+      "argv": true,
+      "chalk": true,
+      "which": true,
+      "$": true,
+      "question": true,
+      "nothrow": true,
+      "quiet": true
+    },
     "extends": [
       "eslint:recommended",
       "prettier"
     ],
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
     "env": {
-      "browser": true,
       "node": true,
       "es6": true
     },

@@ -57,7 +57,7 @@ const checkTmux = async () => {
 
 const countRunningContainers = async () => {
   const containerCountProcessOutput = await nothrow(
-    $`docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv*) 2>/dev/null | wc -l`,
+    $`docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv*) 2>/dev/null | wc -l`
   )
   return parseInt(containerCountProcessOutput.stdout)
 }
@@ -74,7 +74,11 @@ const prereqCheck = () => {
     !which.sync('docker', { nothrow: true }) &&
     !which.sync('docker-compose', { nothrow: true })
   ) {
-    console.log(`[${chalk.red('E')}] Please install docker and docker-compose before continuing!`)
+    console.log(
+      `[${chalk.red(
+        'E'
+      )}] Please install docker and docker-compose before continuing!`
+    )
     process.exit(1)
   }
 }
@@ -142,14 +146,17 @@ const activateDockerMachine = async () => {
         process.env[envVar[0]] = envVar[1]
       })
   } catch (p) {
-    console.log(`[${chalk.red('E')}] Could not activate docker-machine\n    ${p.stderr}`)
+    console.log(
+      `[${chalk.red('E')}] Could not activate docker-machine\n    ${p.stderr}`
+    )
     process.exit(1)
   }
 }
 
 const checkRunningWindows = async () => {
   try {
-    const filteredOutput = await $`tmux display -t checkly -p '#{W:#{window_name} }'`
+    const filteredOutput =
+      await $`tmux display -t checkly -p '#{W:#{window_name} }'`
     const runningWindows = filteredOutput.stdout
       .split(' ')
       .filter(Boolean)
@@ -157,7 +164,14 @@ const checkRunningWindows = async () => {
     const runningWindowsCount = runningWindows.length
 
     if (runningWindowsCount !== 6) {
-      const allWindows = ['bash', 'webapp', 'api', 'functions', 'daemons', 'datapipeline']
+      const allWindows = [
+        'bash',
+        'webapp',
+        'api',
+        'functions',
+        'daemons',
+        'datapipeline',
+      ]
 
       // Diff missingCOntainers array and runningContainers array
       const missingWindows = allWindows.filter((cont) => {
@@ -178,33 +192,44 @@ const checkRunningContainers = async () => {
     const filteredOutput =
       await $`docker ps --filter name=devenv* --format="{{.Names}}" 2>/dev/null`
     const runningContainers = filteredOutput.stdout.split('\n')
-    const runningContainersCount = runningContainers.filter((cont) => cont).length
+    const runningContainersCount = runningContainers.filter(
+      (cont) => cont
+    ).length
 
     if (runningContainersCount !== IDEAL_CONTAINER_COUNT) {
-      const missingContainers = CONTAINER_SUBSTRINGS.reduce((acc, containerName) => {
-        if (
-          runningContainers.filter((container) => {
-            return container.includes(containerName)
-          }).length === 0
-        ) {
-          acc.push(containerName)
-        }
-        return acc
-      }, [])
+      const missingContainers = CONTAINER_SUBSTRINGS.reduce(
+        (acc, containerName) => {
+          if (
+            runningContainers.filter((container) => {
+              return container.includes(containerName)
+            }).length === 0
+          ) {
+            acc.push(containerName)
+          }
+          return acc
+        },
+        []
+      )
 
-      console.log(`[${chalk.red('E')}] It looks like the following containers are not running!`)
+      console.log(
+        `[${chalk.red(
+          'E'
+        )}] It looks like the following containers are not running!`
+      )
       missingContainers.forEach((container) => {
         console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
       })
     } else {
       console.log(
         `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
-          '✓ ACTIVE',
-        )} with ${runningContainersCount} containers.`,
+          '✓ ACTIVE'
+        )} with ${runningContainersCount} containers.`
       )
     }
   } catch (p) {
-    console.log(`[${chalk.red('E')}] Could not check running containers - ${p.stderr}`)
+    console.log(
+      `[${chalk.red('E')}] Could not check running containers - ${p.stderr}`
+    )
     process.exit(1)
   }
 }

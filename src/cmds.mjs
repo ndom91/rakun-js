@@ -129,7 +129,7 @@ const startEnv = async ({ type }) => {
           await activateDockerMachine()
         }
       }
-      await $`docker container start $(docker container ls -a -q --filter name=devenv*) 1>/dev/null`
+      await $`docker container start $(docker container ls -a -q --filter name=devenv* --format '{{.ID}}') 1>/dev/null`
       break
     case typeSchema.ALL:
       await Promise.all([

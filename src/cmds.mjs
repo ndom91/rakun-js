@@ -79,10 +79,10 @@ const restartEnv = async ({ type }) => {
       await stopEnv({ type: typeSchema.HEARTBEATS })
       await startEnv({ type: typeSchema.HEARTBEATS })
       break
-    case typeSchema.DATAPIPELINE:
-      await stopEnv({ type: typeSchema.DATAPIPELINE })
-      await startEnv({ type: typeSchema.DATAPIPELINE })
-      break
+    // case typeSchema.DATAPIPELINE:
+    //   await stopEnv({ type: typeSchema.DATAPIPELINE })
+    //   await startEnv({ type: typeSchema.DATAPIPELINE })
+    //   break
     case typeSchema.CONTAINERS:
       if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
@@ -119,7 +119,7 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
     case typeSchema.CONTAINERS:
@@ -143,14 +143,14 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
-    case typeSchema.DATAPIPELINE:
-      await Promise.all([
-        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
-      ])
-      break
+    // case typeSchema.DATAPIPELINE:
+    //   await Promise.all([
+    //     $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+    //   ])
+    //   break
     case typeSchema.HEARTBEATS:
       await Promise.all([
         $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
@@ -163,7 +163,7 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
         $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
       ])
       break
   }
@@ -183,7 +183,7 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-runners' &>/dev/null`),
@@ -213,7 +213,7 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
@@ -223,14 +223,14 @@ const stopEnv = async ({ type }) => {
         ),
       ])
       break
-    case typeSchema.DATAPIPELINE:
-      await Promise.all([
-        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
-        nothrow(
-          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
-        ),
-      ])
-      break
+    // case typeSchema.DATAPIPELINE:
+    //   await Promise.all([
+    //     nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+    //     nothrow(
+    //       $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
+    //     ),
+    //   ])
+    //   break
     default:
       await Promise.all([
         nothrow($`tmux kill-window -t checkly:webapp &>/dev/null`),
@@ -238,7 +238,7 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),

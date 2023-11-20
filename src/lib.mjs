@@ -1,7 +1,7 @@
 import { CONTAINER_SUBSTRINGS, IDEAL_CONTAINER_COUNT } from './config.mjs'
 
 const typeSchema = {
-  DATAPIPELINE: 'DATAPIPELINE',
+  // DATAPIPELINE: 'DATAPIPELINE',
   HEARTBEATS: 'HEARTBEATS',
   CONTAINERS: 'CONTAINERS',
   FRONTEND: 'FRONTEND',
@@ -13,7 +13,7 @@ const flagsSchema = {
   [typeSchema.FRONTEND]: ['f', 'fe', 'frontend'],
   [typeSchema.BACKEND]: ['b', 'be', 'backend'],
   [typeSchema.CONTAINERS]: ['c', 'container', 'containers'],
-  [typeSchema.DATAPIPELINE]: ['d', 'datapipeline', 'data', 'pipeline'],
+  // [typeSchema.DATAPIPELINE]: ['d', 'datapipeline', 'data', 'pipeline'],
 }
 
 const printUsage = () => {
@@ -42,7 +42,6 @@ const printUsage = () => {
     Action Modifiers:
       -f, -fe     frontend
       -b, -be     backend
-      -d, -data   datapipeline
       -c          containers
 `)
 }
@@ -105,11 +104,11 @@ const getType = () => {
     includesArg(flagsSchema[typeSchema.BACKEND], argv['_'])
   ) {
     return typeSchema.BACKEND
-  } else if (
-    includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv) ||
-    includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv['_'])
-  ) {
-    return typeSchema.DATAPIPELINE
+    // } else if (
+    //   includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv) ||
+    //   includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv['_'])
+    // ) {
+    //   return typeSchema.DATAPIPELINE
   } else if (
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv) ||
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv['_'])
@@ -171,7 +170,7 @@ const checkRunningWindows = async () => {
         'api',
         'functions',
         'daemons',
-        'datapipeline',
+        // 'datapipeline',
       ]
 
       // Diff missingCOntainers array and runningContainers array

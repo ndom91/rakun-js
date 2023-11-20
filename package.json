@@ -8,7 +8,7 @@
     "start": "zx ./src/index.mjs",
     "lint": "eslint src/**/*",
     "lint:fix": "eslint --fix src/**/*",
-    "build": "esbuild src/index.mjs --bundle --platform=node --target=node16 --format=esm --outfile=dist/rakun.js"
+    "build": "esbuild src/index.mjs --bundle --platform=node --target=esnext --format=esm --outfile=dist/rakun.js"
   },
   "bin": {
     "rakun": "./dist/rakun.js"

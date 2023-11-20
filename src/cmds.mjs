@@ -9,6 +9,10 @@ import {
   countRunningContainers,
 } from './lib.mjs'
 
+// @TODO:
+// - Cleanup 'datapipeline' related code completely
+// - Cleanup 'functions' related code completely
+
 const statusEnv = async () => {
   if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 1) {
     console.log(chalk.red('No tmux session found'))
@@ -43,6 +47,7 @@ const statusEnv = async () => {
   )
 
   // Docker Status
+  // @TODO: Merge local host and dockermachine container statuses
   if ((await countRunningContainers()) === 0) {
     console.log(`[${chalk.yellow('W')}] No containers running on host`)
     let machineAnswer = await question(

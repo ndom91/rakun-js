@@ -187,6 +187,7 @@ const checkRunningWindows = async () => {
   }
 }
 
+// @TODO: Decouple checking and printing output
 const checkRunningContainers = async () => {
   try {
     const filteredOutput =

@@ -3,7 +3,7 @@
 import {
   getType,
   printHelp,
-  prereqCheck,
+  dependencyCheck,
   activateDockerMachine,
 } from './lib.mjs'
 import { startEnv, stopEnv, restartEnv, cleanEnv, statusEnv } from './cmds.mjs'
@@ -20,7 +20,7 @@ const main = async () => {
   }
 
   try {
-    prereqCheck()
+    dependencyCheck()
     if (argv.m) {
       await activateDockerMachine()
     }

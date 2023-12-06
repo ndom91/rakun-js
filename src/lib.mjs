@@ -1,8 +1,5 @@
-import { CONTAINER_SUBSTRINGS, IDEAL_CONTAINER_COUNT } from './config.mjs'
-
 const typeSchema = {
-  // DATAPIPELINE: 'DATAPIPELINE',
-  HEARTBEATS: 'HEARTBEATS',
+  SCHEDULED: 'SCHEDULED',
   CONTAINERS: 'CONTAINERS',
   FRONTEND: 'FRONTEND',
   BACKEND: 'BACKEND',
@@ -13,7 +10,6 @@ const flagsSchema = {
   [typeSchema.FRONTEND]: ['f', 'fe', 'frontend'],
   [typeSchema.BACKEND]: ['b', 'be', 'backend'],
   [typeSchema.CONTAINERS]: ['c', 'container', 'containers'],
-  // [typeSchema.DATAPIPELINE]: ['d', 'datapipeline', 'data', 'pipeline'],
 }
 
 const printUsage = () => {
@@ -27,7 +23,7 @@ const printUsage = () => {
       ${chalk.greenBright('rakun')} -m status
 
     Flags:
-      -m          activate docker-mmachine
+      -m          activate docker-machine
       -h          docker-machine hostname
       -cd         checkly directory
 
@@ -56,13 +52,19 @@ const checkTmux = async () => {
 }
 
 const countRunningContainers = async () => {
-  const containerCountProcessOutput = await nothrow(
+  const countContainersDevenv = await nothrow(
     $`docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=devenv*) 2>/dev/null | wc -l`
   )
-  return parseInt(containerCountProcessOutput.stdout)
+  const countContainersRunners = await nothrow(
+    $`docker inspect --format="{{.State.Running}}" $(docker container ls -q --filter name=checkly-runners*) 2>/dev/null | wc -l`
+  )
+  return (
+    parseInt(countContainersDevenv.stdout) +
+    parseInt(countContainersRunners.stdout)
+  )
 }
 
-const prereqCheck = () => {
+const dependencyCheck = () => {
   // Check if tmux exists
   if (!which.sync('tmux', { nothrow: true })) {
     console.log(`[${chalk.red('E')}] Please install tmux before continuing!`)
@@ -104,11 +106,6 @@ const getType = () => {
     includesArg(flagsSchema[typeSchema.BACKEND], argv['_'])
   ) {
     return typeSchema.BACKEND
-    // } else if (
-    //   includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv) ||
-    //   includesArg(flagsSchema[typeSchema.DATAPIPELINE], argv['_'])
-    // ) {
-    //   return typeSchema.DATAPIPELINE
   } else if (
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv) ||
     includesArg(flagsSchema[typeSchema.CONTAINERS], argv['_'])
@@ -137,12 +134,13 @@ const activateDockerMachine = async () => {
       .reduce((acc, line) => {
         if (line.startsWith('export')) {
           const [key, value] = line.replace('export ', '').split('=')
-          acc.push([key, value.trim().replace('"', '').replace('"', '')])
+          acc.push([key, value.trim().replaceAll('"', '')])
         }
         return acc
       }, [])
       .forEach((envVar) => {
-        // Set temporary env vars for docker-machine for any following docker cmds
+        // Set temporary env vars for docker-machine for
+        // any following docker cmds
         process.env[envVar[0]] = envVar[1]
       })
   } catch (p) {
@@ -161,72 +159,43 @@ const checkRunningWindows = async () => {
       .split(' ')
       .filter(Boolean)
       .filter((w) => w !== '\n')
-    const runningWindowsCount = runningWindows.length
 
-    if (runningWindowsCount !== 6) {
-      const allWindows = [
-        'bash',
-        'webapp',
-        'api',
-        'functions',
-        'daemons',
-        // 'datapipeline',
-      ]
+    const allWindows = [
+      'webapp',
+      'api',
+      'functions',
+      'daemons',
+      'scheduled-workers',
+    ]
 
-      // Diff missingCOntainers array and runningContainers array
-      const missingWindows = allWindows.filter((cont) => {
-        return !runningWindows.includes(cont)
-      })
+    const missingWindows = allWindows.reduce((missing, currentWindow) => {
+      if (!runningWindows.includes(currentWindow)) {
+        missing.push(currentWindow)
+      }
+      return missing
+    }, [])
 
-      // console.log(`[${chalk.red('E')}] Missing windows: ${missingWindows.join(', ')}`)
-      return missingWindows
-    }
-    return []
+    return missingWindows
   } catch (p) {
     console.error(p)
   }
 }
 
 // @TODO: Decouple checking and printing output
-const checkRunningContainers = async () => {
+const getRunningContainerNames = async () => {
   try {
-    const filteredOutput =
+    const devenvContainers = (
       await $`docker ps --filter name=devenv* --format="{{.Names}}" 2>/dev/null`
-    const runningContainers = filteredOutput.stdout.split('\n')
-    const runningContainersCount = runningContainers.filter(
-      (cont) => cont
-    ).length
+    ).stdout
+    const checklyRunnersContainers = (
+      await $`docker ps --filter name=checkly-runners* --format="{{.Names}}" 2>/dev/null`
+    ).stdout
 
-    if (runningContainersCount !== IDEAL_CONTAINER_COUNT) {
-      const missingContainers = CONTAINER_SUBSTRINGS.reduce(
-        (acc, containerName) => {
-          if (
-            runningContainers.filter((container) => {
-              return container.includes(containerName)
-            }).length === 0
-          ) {
-            acc.push(containerName)
-          }
-          return acc
-        },
-        []
-      )
-
-      console.log(
-        `[${chalk.red(
-          'E'
-        )}] It looks like the following containers are not running!`
-      )
-      missingContainers.forEach((container) => {
-        console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
-      })
-    } else {
-      console.log(
-        `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
-          '✓ ACTIVE'
-        )} with ${runningContainersCount} containers.`
-      )
-    }
+    const runningContainers = [
+      ...devenvContainers.split('\n').filter(Boolean),
+      ...checklyRunnersContainers.split('\n').filter(Boolean),
+    ]
+    return runningContainers
   } catch (p) {
     console.log(
       `[${chalk.red('E')}] Could not check running containers - ${p.stderr}`
@@ -244,10 +213,10 @@ export {
   printHelp,
   checkTmux,
   typeSchema,
-  prereqCheck,
+  dependencyCheck,
   getDockerMachineHost,
   activateDockerMachine,
   countRunningContainers,
-  checkRunningContainers,
+  getRunningContainerNames,
   checkRunningWindows,
 }

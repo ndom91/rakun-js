@@ -1,17 +1,15 @@
-import { IDEAL_TMUX_WINDOWS, checklyDir } from './config.mjs'
+import { checklyDir, CONTAINER_SUBSTRINGS } from './config.mjs'
 import {
-  inRange,
   typeSchema,
   getDockerMachineHost,
   activateDockerMachine,
-  checkRunningContainers,
+  getRunningContainerNames,
   checkRunningWindows,
   countRunningContainers,
 } from './lib.mjs'
 
 // @TODO:
-// - Cleanup 'datapipeline' related code completely
-// - Cleanup 'functions' related code completely
+// - Cleanup 'functions' related code
 
 const statusEnv = async () => {
   if ((await $`tmux has-session -t checkly 2>/dev/null`.exitCode) === 1) {
@@ -19,50 +17,73 @@ const statusEnv = async () => {
     return
   }
 
-  let statusColoredMsg = async (num) => {
+  let statusColoredMsg = async () => {
     const missingWindows = await checkRunningWindows()
 
-    if (num === 0) {
+    if (missingWindows.length === 5) {
       return chalk.red('✗ INACTIVE')
-    } else if (inRange(num, 0, IDEAL_TMUX_WINDOWS - 1)) {
+    } else if (missingWindows.length > 0) {
       return `${chalk.yellow('⚠ DEGRADED')} (without "${missingWindows.join(
         ', '
       )}")`
-    } else if (num === IDEAL_TMUX_WINDOWS) {
+    } else if (missingWindows.length === 0) {
       return chalk.green('✓ ACTIVE')
-    } else if (num > IDEAL_TMUX_WINDOWS) {
-      return chalk.white('UNKNOWN')
     } else {
       return chalk.white('UNKNOWN')
     }
   }
 
   // Tmux Status
-  const windows = parseInt(
+  const windowCount = parseInt(
     await $`tmux display-message -t checkly -p '#{session_windows}'`
   )
-  const msg = await statusColoredMsg(windows)
+  const msg = await statusColoredMsg()
   console.log(
-    `[*] ${chalk.bold.cyan('Checkly')} tmux ${msg} with ${windows} windows.`
+    `[*] ${chalk.bold.cyan('Checkly')} tmux ${msg} with ${windowCount} windows`
   )
 
   // Docker Status
-  // @TODO: Merge local host and dockermachine container statuses
-  if ((await countRunningContainers()) === 0) {
-    console.log(`[${chalk.yellow('W')}] No containers running on host`)
-    let machineAnswer = await question(
-      `[${chalk.white('Q')}] Check in ${chalk.bold(
-        'docker-machine'
-      )}? ("${getDockerMachineHost()}") [y/n] `
+  const localContainers = await getRunningContainerNames()
+  await activateDockerMachine()
+  const machineContainers = await getRunningContainerNames()
+  const runningContainers = [...localContainers, ...machineContainers]
+
+  const missingContainers = []
+  for (const substring of CONTAINER_SUBSTRINGS) {
+    const matchingContainers = runningContainers.filter((container) =>
+      container.includes(substring)
     )
-    if (['y', 'Y', 'yes', 'Yes'].includes(machineAnswer)) {
-      await activateDockerMachine()
-      checkRunningContainers()
-    } else {
-      process.exit(0)
+
+    if (matchingContainers.length === 0) {
+      missingContainers.push(substring)
     }
+  }
+
+  if (missingContainers.length > 0) {
+    console.log(
+      `[${chalk.red(
+        'E'
+      )}] It looks like the following containers are not running!`
+    )
+    missingContainers.forEach((container) => {
+      console.log(` ${chalk.bold('*')} ${chalk.bold(container)}`)
+    })
   } else {
-    checkRunningContainers()
+    console.log(
+      `[*] ${chalk.bold.cyan('Checkly')} docker ${chalk.green(
+        '✓ ACTIVE'
+      )} with ${runningContainers.length} containers`
+    )
+
+    const checklyRunnerContainers = runningContainers.filter((container) =>
+      container.includes('checkly-runner')
+    )
+    if (checklyRunnerContainers.length > 0) {
+      console.log(`[*] ${chalk.bold.green('Runners')}:`)
+      checklyRunnerContainers.forEach((container) => {
+        console.log(` ${chalk.bold('-')} ${chalk.bold(container)}`)
+      })
+    }
   }
 }
 
@@ -80,14 +101,10 @@ const restartEnv = async ({ type }) => {
       await stopEnv({ type: typeSchema.ALL })
       await startEnv({ type: typeSchema.ALL })
       break
-    case typeSchema.HEARTBEATS:
-      await stopEnv({ type: typeSchema.HEARTBEATS })
-      await startEnv({ type: typeSchema.HEARTBEATS })
+    case typeSchema.SCHEDULED:
+      await stopEnv({ type: typeSchema.SCHEDULED })
+      await startEnv({ type: typeSchema.SCHEDULED })
       break
-    // case typeSchema.DATAPIPELINE:
-    //   await stopEnv({ type: typeSchema.DATAPIPELINE })
-    //   await startEnv({ type: typeSchema.DATAPIPELINE })
-    //   break
     case typeSchema.CONTAINERS:
       if ((await countRunningContainers()) === 0) {
         console.log(`[${chalk.yellow('W')}] No containers running on host`)
@@ -123,8 +140,7 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:watch"`,
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
-        $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        $`tmux neww -t checkly: -n scheduled-workers -d "cd ${checklyDir}/checkly-backend/services/scheduled-workers && fnm exec --using ../../.nvmrc npm run start:local"`,
       ])
       break
     case typeSchema.CONTAINERS:
@@ -147,18 +163,12 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:watch"`,
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
-        $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        $`tmux neww -t checkly: -n scheduled-workers -d "cd ${checklyDir}/checkly-backend/services/scheduled-workers && fnm exec --using ../../.nvmrc npm run start:local"`,
       ])
       break
-    // case typeSchema.DATAPIPELINE:
-    //   await Promise.all([
-    //     $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
-    //   ])
-    //   break
-    case typeSchema.HEARTBEATS:
+    case typeSchema.SCHEDULED:
       await Promise.all([
-        $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
+        $`tmux neww -t checkly: -n scheduled-workers -d "cd ${checklyDir}/checkly-backend/services/scheduled-workers && fnm exec --using ../../.nvmrc npm run start:local"`,
       ])
       break
     default:
@@ -167,8 +177,7 @@ const startEnv = async ({ type }) => {
         $`tmux neww -t checkly: -n api -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:watch"`,
         $`tmux neww -t checkly: -n functions -d "cd ${checklyDir}/checkly-runners/functions && fnm exec --using ../.nvmrc npm run start:local"`,
         $`tmux neww -t checkly: -n daemons -d "cd ${checklyDir}/checkly-backend/api && fnm exec --using ../.nvmrc npm run start:all-daemons:watch"`,
-        $`tmux neww -t checkly: -n heartbeats -d "cd ${checklyDir}/checkly-backend/services/heartbeats-cron && fnm exec --using ../../.nvmrc npm run start:local"`,
-        // $`tmux neww -t checkly: -n datapipeline -d "cd ${checklyDir}/checkly-data-pipeline/check-results-consumer && npm run start:local"`,
+        $`tmux neww -t checkly: -n scheduled-workers -d "cd ${checklyDir}/checkly-backend/services/scheduled-workers && fnm exec --using ../../.nvmrc npm run start:local"`,
       ])
       break
   }
@@ -187,14 +196,10 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:scheduled-workers &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-runners' &>/dev/null`),
-        nothrow(
-          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
-        ),
       ])
       break
     case typeSchema.CONTAINERS:
@@ -217,40 +222,24 @@ const stopEnv = async ({ type }) => {
         nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:scheduled-workers &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-runners' &>/dev/null`),
-        nothrow(
-          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
-        ),
       ])
       break
-    // case typeSchema.DATAPIPELINE:
-    //   await Promise.all([
-    //     nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
-    //     nothrow(
-    //       $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
-    //     ),
-    //   ])
-    //   break
     default:
       await Promise.all([
         nothrow($`tmux kill-window -t checkly:webapp &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:api &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:functions &>/dev/null`),
         nothrow($`tmux kill-window -t checkly:daemons &>/dev/null`),
-        nothrow($`tmux kill-window -t checkly:heartbeats &>/dev/null`),
-        // nothrow($`tmux kill-window -t checkly:datapipeline &>/dev/null`),
+        nothrow($`tmux kill-window -t checkly:scheduled-workers &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-webapp' &>/dev/null`),
         nothrow($`pkill -f 'node daemons/' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-backend' &>/dev/null`),
         nothrow($`pkill -f 'node /opt/checkly/checkly-runners' &>/dev/null`),
-        nothrow(
-          $`pkill -f 'node /opt/checkly/checkly-data-pipeline' &>/dev/null`
-        ),
       ])
       break
   }
